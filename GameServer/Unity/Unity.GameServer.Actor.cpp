@@ -1,0 +1,6 @@
+#include "Pch.h"
+#include "./Actor/Player.cpp"
+#include "./Actor/Actor.cpp"
+#include "./Actor/Npc.cpp"
+#include "./Actor/ActorFactory.cpp"
+#include "./Actor/EnvObj.cpp"

@@ -1,0 +1,45 @@
+
+
+#include "Pch.h"
+#include "EnvObjStateDeactivate.h"
+
+#include "Actor/EnvObj.h"
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @ brief	생성자
+////////////////////////////////////////////////////////////////////////////////////////////////////
+EnvObjStateDeactivate::EnvObjStateDeactivate(FsmComponent& fsm, EnvObj& gadget, EFsmStateType type)
+	:
+	super(fsm, gadget, type)
+{
+	_updateTimeInterval = 1000; // 일단 1초정도로
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @ brief	스테이트가 갱신될 때를 처리한다.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+void EnvObjStateDeactivate::onUpdate(int64_t curtimeValue)
+{
+	if (!_isUpdateTime(curtimeValue))
+		return;
+
+	_setNextUpdateTime(curtimeValue);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @ brief	스테이트에 진입할 때를 처리한다
+////////////////////////////////////////////////////////////////////////////////////////////////////
+void EnvObjStateDeactivate::onEnter(IState* prevState, const StateInit* init)
+{
+	super::onEnter(prevState, init);
+
+	_envObj.setEnvObjState(EEnvObjStateType::Deactivated);
+
+	PktEnvObjStateNotify notify;
+	notify.setId(_envObj.getId());
+	notify.setStateInfo(PktEnvObjState(_envObj.getEnvObjState(), _envObj.getRemainCtrlCount()));
+
+	if (auto room = _envObj.getRoom())
+		room->sendToNear(_envObj, notify);
+}
+

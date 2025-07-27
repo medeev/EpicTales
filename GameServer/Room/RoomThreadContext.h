@@ -1,0 +1,26 @@
+﻿////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @brief 룸스레드컨텍스트
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+#pragma once
+
+namespace Core
+{
+	class TaskManager;
+}
+
+class RoomThreadContext
+{
+	friend class Core::TaskManager;
+private:
+	/// 생성자
+	RoomThreadContext() {}
+
+	/// 생성자
+	RoomThreadContext(const RoomThreadContext&) {}
+};
+
+
+/// 참조 타입 정의
+using RoomThreadContextRef = RoomThreadContext&;

@@ -1,0 +1,5 @@
+#include "Pch.h"
+#include "./Logic/Party/Matching.cpp"
+#include "./Logic/Party/MatchingRequest.cpp"
+#include "./Logic/Party/Party.cpp"
+#include "./Logic/Party/PartyManager.cpp"

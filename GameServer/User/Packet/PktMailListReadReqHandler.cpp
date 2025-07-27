@@ -1,0 +1,48 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @brief PktMailListReadReqHandler 의 소스 파일입니다.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#include "Pch.h"
+#include "PktMailListReadReqHandler.h"
+
+#include <Protocol/Struct/PktMail.h>
+#include "Logic/Mail/MailComponent.h"
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @brief 패킷을 처리한다
+////////////////////////////////////////////////////////////////////////////////////////////////////
+void PktMailListReadReqHandler::onHandler(User& user, PktMailListReadReq& req)
+{
+	std::shared_ptr<Ack> ack = std::make_shared<Ack>();
+	ack->setReqKey(req.getReqKey());
+	_onHandler(user, req, ack);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @brief 패킷을 처리한다
+////////////////////////////////////////////////////////////////////////////////////////////////////
+void PktMailListReadReqHandler::_onHandler(User& user, PktMailListReadReq& req, std::shared_ptr<Ack>& ack)
+{
+	auto player = user.getPlayer();
+	if (!player)
+	{
+		ack->setResult(EResultCode::InvalidState);
+		user.send(*ack);
+		return;
+	}
+
+	auto room = player->getRoom();
+	if (!room)
+	{
+		ack->setResult(EResultCode::InvalidState);
+		user.send(*ack);
+		return;
+	}
+
+	auto& mailComponent = player->getMailComponent();
+	mailComponent.exportTo(ack->getMails());
+
+	player->send(*ack);
+}
+
+

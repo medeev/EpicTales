@@ -1,0 +1,52 @@
+
+
+#include "Pch.h"
+#include "NpcStateIdle.h"
+
+#include <Data/Info/NpcInfo.h>
+
+#include "Actor/Npc.h"
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @ brief	생성자
+////////////////////////////////////////////////////////////////////////////////////////////////////
+NpcStateIdle::NpcStateIdle(FsmComponent& fsm, Npc& npc, EFsmStateType type)
+	:
+	super(fsm, npc, type)
+{
+	_setUpdateTimeInterval(200);
+	_setLookTimeInterval(200);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @ brief		스테이트에 진입할 때를 처리한다
+////////////////////////////////////////////////////////////////////////////////////////////////////
+void NpcStateIdle::onEnter(IState* prevState, const StateInit* init)
+{
+	super::onEnter(prevState, init);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @ brief		스테이트가 갱신될 때를 처리한다
+////////////////////////////////////////////////////////////////////////////////////////////////////
+void NpcStateIdle::onUpdate(int64_t curTimeValue)
+{
+	if (!_isUpdateTime(curTimeValue))
+		return;
+
+	_setNextUpdateTime(curTimeValue);
+
+	if (_isLookTime(curTimeValue))
+	{
+		/*auto cognitionDist = (float)_npc.getInfo().getCognitionDist();
+		_npc.lookAround(cognitionDist * cognitionDist);
+
+		if (_npc.getNpcAiComponent().getTarget().aggroTop)
+		{
+			_fsm.changeState(EFsmStateType::NpcStateChase);
+			return;
+		}*/
+
+		_setNextLookTime(curTimeValue);
+	}
+}

@@ -1,0 +1,7 @@
+#include "Pch.h"
+#include "./Logic/NpcAi/BTRunningTaskData.cpp"
+#include "./Logic/NpcAi/BTNode.cpp"
+#include "./Logic/NpcAi/BTFuncTask.cpp"
+#include "./Logic/NpcAi/BTFuncDecoration.cpp"
+#include "./Logic/NpcAi/BTNodeManager.cpp"
+#include "./Logic/NpcAi/NpcAiComponent.cpp"

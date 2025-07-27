@@ -1,0 +1,17 @@
+
+
+#include "Pch.h"
+#include "EnvObjStateBase.h"
+
+#include "Actor/EnvObj.h"
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @ brief		생성자
+////////////////////////////////////////////////////////////////////////////////////////////////////
+EnvObjStateBase::EnvObjStateBase( FsmComponent& fsm, EnvObj& gadget, EFsmStateType type )
+	:
+	super( fsm, gadget, type ),
+	_envObj( gadget )
+{
+	_updateTimeInterval = 1000; // 일단 1초정도로
+}

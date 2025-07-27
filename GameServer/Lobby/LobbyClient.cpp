@@ -1,0 +1,158 @@
+
+
+#include "Pch.h"
+#include "LobbyClient.h"
+
+#include <Core/Ini.h>
+#include <Core/Task/TimerTask.h>
+#include <Core/Util/AppInstance.h>
+#include <Protocol/PacketHeader.h>
+#include <Protocol/PacketReader.h>
+#include <Protocol/PacketWriter.h>
+#include <Protocol/Struct/PktS2S.h>
+
+#include "GameServer.h"
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @ brief		생성자
+////////////////////////////////////////////////////////////////////////////////////////////////////
+LobbyClient::LobbyClient(AsioIoContext& ioContext, GameServer* gameServer)
+	:
+	Core::Client(ioContext),
+	_gameServer(gameServer),
+	_numbering(0)
+{
+	_tryConnect = false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @ brief		소멸자
+////////////////////////////////////////////////////////////////////////////////////////////////////
+LobbyClient::~LobbyClient()
+{
+
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @ brief		시작한다
+////////////////////////////////////////////////////////////////////////////////////////////////////
+void LobbyClient::start(const std::string& ip, uint16_t port)
+{
+	_ip = ip;
+	_port = port;
+
+	Core::TimerTask::Task timer(
+		"LobbyTryConnect",
+		Core::TimerTask::EType::Loop,
+		3000,
+		[this](uint64_t curTime)
+		{
+			if (!_connected && !_tryConnect)
+			{
+				_tryConnect = true;
+				if (!connect(_ip, _port))
+				{
+					WARN_LOG("failed to connect to lobbyServer. [ip: %s, port: %d]", _ip.c_str(), _port);
+					_tryConnect = false;
+				}
+			}
+		});
+
+	Core::TimerTask::Instance().regist(timer);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @ brief		패킷을 보낸다
+////////////////////////////////////////////////////////////////////////////////////////////////////
+bool LobbyClient::send(const PktBase& pktBase)
+{
+	PacketWriter writer;
+	writer.setVersion(PacketVersionClient);
+	PacketHeader pktHeader(_numbering++);
+	pktHeader.generate(pktBase, writer, true);
+
+	return Core::Client::send(writer.getBuffer(), writer.getLength());
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @ brief		접속 성공
+////////////////////////////////////////////////////////////////////////////////////////////////////
+void LobbyClient::onConnected()
+{
+	_tryConnect = false;
+	INFO_LOG("lobbyServer connected.[remote:%s:%d]", 
+		getRemoteAddressIpv4().c_str(), getRemotePort());
+
+	PktG2LServerConnectInfoNotify notify;
+
+	notify.getInfo().setId(_gameServer->GetServerId());
+	notify.getInfo().setIp(Core::Ini::Instance().getString("IP", ""));
+	notify.getInfo().setPort(Core::Ini::Instance().getInteger("PORT", 6000));
+	notify.getInfo().setName(Core::Ini::Instance().getString("SERVER_NAME", Core::AppInstance::GetHostName()));
+	send(notify);
+
+	_gameServer->onAccepterStart();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @ brief		접속 실패
+////////////////////////////////////////////////////////////////////////////////////////////////////
+void LobbyClient::onConnectFailed(const AsioErrorCode& error)
+{
+	_tryConnect = false;
+	WARN_LOG("failed to connect lobbyServer. [ip: %s]", _ip.c_str());
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @ brief		전송 성공
+////////////////////////////////////////////////////////////////////////////////////////////////////
+void LobbyClient::onSent(int32_t bytesTransferred)
+{
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @ brief		읽기 완료 후 패킷 구분 시 호출된다
+////////////////////////////////////////////////////////////////////////////////////////////////////
+bool LobbyClient::onExtractPacket(uint8_t* data, uint32_t len, uint32_t& outLen)
+{
+	// len(3), protocol(2)
+	if (len < 5)
+		return false;
+
+	uint32_t packetLen = 0;
+	memcpy(&packetLen, data, 3);
+
+	if (packetLen > len)
+		return false;
+
+	outLen = packetLen;
+	return true;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @ brief		패킷을 디스패치 한다
+////////////////////////////////////////////////////////////////////////////////////////////////////
+void LobbyClient::onPacketDispatch(uint8_t* data)
+{
+	PacketHeader pktHeader;
+	PacketReader pktReader;
+	pktReader.setVersion(PacketVersionClient);
+
+	if (!pktHeader.generate(data, pktReader, false))
+		return;
+
+	_dispatcher.dispatch(this, pktHeader, pktReader);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @ brief		접속 종료
+////////////////////////////////////////////////////////////////////////////////////////////////////
+void LobbyClient::onClosed()
+{
+	_numbering = 0;
+	_connected = false;
+	_tryConnect = false;
+}
+

@@ -1,0 +1,6 @@
+#include "Pch.h"
+#include "./Admin/AdminCmdExit.cpp"
+#include "./Admin/AdminCmdPacketLog.cpp"
+#include "./Admin/AdminCmdTest.cpp"
+#include "./Admin/AdminManager.cpp"
+#include "./Admin/IAdminCmd.cpp"

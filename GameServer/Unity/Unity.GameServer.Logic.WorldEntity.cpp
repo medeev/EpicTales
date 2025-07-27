@@ -1,0 +1,7 @@
+#include "Pch.h"
+#include "./Logic/WorldEntity/EnvObjSpawner.cpp"
+#include "./Logic/WorldEntity/Trigger.cpp"
+#include "./Logic/WorldEntity/TriggerComponent.cpp"
+#include "./Logic/WorldEntity/EnvObjSpawnComponent.cpp"
+#include "./Logic/WorldEntity/NpcSpawner.cpp"
+#include "./Logic/WorldEntity/NpcSpawnComponent.cpp"
