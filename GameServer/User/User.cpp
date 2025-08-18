@@ -71,20 +71,7 @@ User::User(int32_t connectionId)
 	_naglePacket.store(std::make_shared<NaglePacketPack>());
 	_busyState = std::make_shared<BusyState>();
 
-	_packetQueueDispose = [this](PktBase* pktBase)
-		{
-			_dispatchLog(*pktBase);
-
-			if (IPacketHandler* handler = _dispather.getPacketHandler(pktBase->getPacketId()))
-				handler->onHandler(this, pktBase);
-
-			Core::Generic::Delete(pktBase);
-		};
-
-	_dispather.setLogFunc([this](const PktBase& pktBase)
-		{
-			_dispatchLog(pktBase);
-		});
+	
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
